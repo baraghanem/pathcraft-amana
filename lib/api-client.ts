@@ -14,15 +14,19 @@ export interface User {
 }
 
 // API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') return ''; // Use relative path on client
+    if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+    return 'http://localhost:3000';
+};
 
 // API client helper
 class ApiClient {
     private baseUrl: string;
     private token: string | null;
 
-    constructor(baseUrl: string = API_BASE_URL) {
-        this.baseUrl = baseUrl;
+    constructor(baseUrl?: string) {
+        this.baseUrl = baseUrl !== undefined ? baseUrl : getBaseUrl();
         this.token = null;
     }
 
