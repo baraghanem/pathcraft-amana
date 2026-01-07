@@ -1,4 +1,6 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import '@/lib/models/User';
+import '@/lib/models/Path';
 import { IUserProgress } from '@/lib/types';
 
 const UserProgressSchema = new Schema<IUserProgress>(

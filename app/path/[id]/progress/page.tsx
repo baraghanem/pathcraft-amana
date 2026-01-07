@@ -158,8 +158,8 @@ export default function PathProgressPage({ params }: RouteParams) {
                             <div className="flex items-center gap-4 flex-1">
                                 <div
                                     className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all ${isCompleted
-                                            ? 'border-green-500 bg-green-500 text-white'
-                                            : 'border-gray-300 text-gray-400'
+                                        ? 'border-green-500 bg-green-500 text-white'
+                                        : 'border-gray-300 text-gray-400'
                                         }`}
                                 >
                                     {isCompleted ? '✓' : index + 1}
@@ -180,7 +180,7 @@ export default function PathProgressPage({ params }: RouteParams) {
                                 </div>
                             </div>
                             <Button
-                                variant={isCompleted ? 'outline' : 'default'}
+                                variant={isCompleted ? 'outline' : 'primary'}
                                 className="text-xs ml-4"
                                 onClick={() => toggleStepCompletion(step._id, isCompleted)}
                             >

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import '@/lib/models/User'; // Ensure User model is registered
 import { IPath, IStep } from '@/lib/types';
 
 const StepSchema = new Schema<IStep>(

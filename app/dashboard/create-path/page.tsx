@@ -149,7 +149,7 @@ export default function CreatePathPage() {
                     <Button
                         onClick={handleGenerateWithAI}
                         disabled={aiLoading}
-                        variant="default"
+                        variant="primary"
                     >
                         {aiLoading ? 'Generating...' : 'Generate'}
                     </Button>
