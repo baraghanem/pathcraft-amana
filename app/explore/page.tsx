@@ -7,8 +7,11 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api-client";
 
-const categories = ["Web Development", "Data Science", "Design", "Mobile Dev", "DevOps"];
-const difficulties = ["Beginner", "Intermediate", "Advanced"];
+import { PATH_CATEGORIES, DIFFICULTY_LEVELS } from "@/lib/constants";
+
+// Use constants instead of local arrays
+const categories = PATH_CATEGORIES;
+const difficulties = DIFFICULTY_LEVELS;
 
 interface Path {
     _id: string;

@@ -7,6 +7,7 @@ import { useState, FormEvent } from "react";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { PATH_CATEGORIES, DIFFICULTY_LEVELS } from "@/lib/constants";
 
 interface Step {
     title: string;
@@ -34,8 +35,8 @@ interface GeneratedRoadmap {
 export default function ImprovedCreatePathPage() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('');
-    const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
+    const [category, setCategory] = useState(PATH_CATEGORIES[0]);
+    const [difficulty, setDifficulty] = useState<(typeof DIFFICULTY_LEVELS)[number]>('Beginner');
     const [steps, setSteps] = useState<Step[]>([
         { title: '', description: '', estimatedDuration: '', order: 0 }
     ]);
@@ -252,7 +253,7 @@ export default function ImprovedCreatePathPage() {
 
         setTitle(generatedRoadmap.title);
         setDescription(generatedRoadmap.description);
-        setCategory(generatedRoadmap.category);
+        setCategory(generatedRoadmap.category as any);
         setDifficulty(generatedRoadmap.difficulty);
         setSteps(generatedRoadmap.steps);
         setShowPreview(false);
@@ -707,12 +708,19 @@ export default function ImprovedCreatePathPage() {
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
                                 Category *
                             </label>
-                            <Input
-                                placeholder="e.g., Web Development"
+                            <select
+                                className="flex h-10 w-full rounded-md border border-gray-300 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700"
                                 value={category}
                                 onChange={(e: any) => setCategory(e.target.value)}
                                 required
-                            />
+                            >
+                                <option value="" disabled>Select a category</option>
+                                {PATH_CATEGORIES.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
