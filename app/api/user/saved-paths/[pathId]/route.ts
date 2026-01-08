@@ -7,7 +7,7 @@ import { successResponse, errorResponse } from '@/lib/utils/apiResponse';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { pathId: string } }
+    { params }: { params: Promise<{ pathId: string }> }
 ) {
     try {
         const authResult = await authenticateUser(request);
@@ -15,7 +15,7 @@ export async function POST(
             return authResult;
         }
 
-        const pathId = params.pathId;
+        const { pathId } = await params;
         await connectDB();
 
         const user = await User.findById(authResult.user.id);
@@ -46,7 +46,7 @@ export async function POST(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { pathId: string } }
+    { params }: { params: Promise<{ pathId: string }> }
 ) {
     try {
         const authResult = await authenticateUser(request);
@@ -54,7 +54,7 @@ export async function DELETE(
             return authResult;
         }
 
-        const pathId = params.pathId;
+        const { pathId } = await params;
         await connectDB();
 
         const user = await User.findById(authResult.user.id);
