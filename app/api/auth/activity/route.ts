@@ -4,7 +4,7 @@ import User from '@/lib/models/User';
 import { authenticateUser } from '@/lib/middleware/auth';
 import { successResponse, errorResponse } from '@/lib/utils/apiResponse';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
         const authResult = await authenticateUser(request);
         if (authResult instanceof Response) {
@@ -18,23 +18,14 @@ export async function GET(request: NextRequest) {
             return errorResponse(new Error('User not found'), 404);
         }
 
-        // Update streak when checking user data
+        // Update streak
         await user.updateStreak();
 
         return successResponse({
-            user: {
-                id: user._id.toString(),
-                email: user.email,
-                name: user.name,
-                avatar: user.avatar,
-                currentStreak: user.currentStreak,
-                longestStreak: user.longestStreak,
-                totalActiveDays: user.totalActiveDays,
-                lastActivityDate: user.lastActivityDate,
-                createdAt: user.createdAt,
-                savedPaths: user.savedPaths || [],
-            },
-        });
+            currentStreak: user.currentStreak,
+            longestStreak: user.longestStreak,
+            totalActiveDays: user.totalActiveDays,
+        }, 'Activity tracked');
     } catch (error) {
         return errorResponse(error);
     }

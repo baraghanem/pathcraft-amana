@@ -23,9 +23,14 @@ export default function LandingPage() {
                     </Link>
                 </div>
                 {/* Placeholder for Hero Image/Illustration present in wireframe */}
-                <div className="mt-20 w-full max-w-4xl h-64 md:h-96 bg-gray-200 dark:bg-gray-800 rounded-xl overflow-hidden relative flex items-center justify-center text-gray-400">
-                    [Hero Illustration Placeholder]
-                    {/* Use <Image /> here in real app */}
+                <div className="mt-20 w-full max-w-4xl h-64 md:h-96 bg-gray-200 dark:bg-gray-800 rounded-xl overflow-hidden relative flex items-center justify-center">
+                    <Image
+                        src="https://illustrations.popsy.co/amber/remote-work.svg"
+                        alt="Learning Illustration"
+                        width={800}
+                        height={600}
+                        className="w-full h-full object-contain"
+                    />
                 </div>
             </section>
 
@@ -55,8 +60,29 @@ export default function LandingPage() {
                 <div className="container mx-auto">
                     <h2 className="text-3xl font-bold mb-10">Example Roadmap</h2>
                     {/* Placeholder for the roadmap graphic in wireframe */}
-                    <div className="w-full max-w-4xl mx-auto h-80 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center text-gray-400">
-                        [Roadmap Visualization Placeholder]
+                    <div className="w-full max-w-4xl mx-auto p-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div className="relative">
+                            {/* Vertical timeline with steps */}
+                            <div className="flex flex-col gap-8">
+                                {[
+                                    { title: "HTML & CSS Basics", desc: "Learn the building blocks of the web" },
+                                    { title: "JavaScript Fundamentals", desc: "Master variables, loops, and functions" },
+                                    { title: "Frontend Frameworks", desc: "Build complex UIs with React or Vue" },
+                                    { title: "Backend Development", desc: "Server-side logic with Node.js or Python" },
+                                    { title: "Deployment & DevOps", desc: "Cloud hosting, CI/CD, and scaling" }
+                                ].map((step, i) => (
+                                    <div key={i} className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-lg shadow-blue-500/30">
+                                            {i + 1}
+                                        </div>
+                                        <div className="flex-1 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
+                                            <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">{step.title}</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{step.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

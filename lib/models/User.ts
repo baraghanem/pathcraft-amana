@@ -16,7 +16,7 @@ const UserSchema = new Schema<IUser>(
             type: String,
             required: [true, 'Password is required'],
             minlength: [6, 'Password must be at least 6 characters'],
-            select: false, // Don't return password by default
+            select: false,
         },
         name: {
             type: String,
@@ -29,13 +29,29 @@ const UserSchema = new Schema<IUser>(
             type: String,
             default: null,
         },
+        // Streak tracking fields
+        currentStreak: {
+            type: Number,
+            default: 0,
+        },
+        longestStreak: {
+            type: Number,
+            default: 0,
+        },
+        lastActivityDate: {
+            type: Date,
+            default: null,
+        },
+        totalActiveDays: {
+            type: Number,
+            default: 0,
+        },
     },
     {
         timestamps: true,
     }
 );
 
-// Index for faster email lookups
 UserSchema.index({ email: 1 });
 
 // Method to compare password
@@ -45,7 +61,49 @@ UserSchema.methods.comparePassword = async function (
     return comparePassword(candidatePassword, this.password);
 };
 
-// Prevent model recompilation in development
+// Method to update streak
+UserSchema.methods.updateStreak = async function (): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastActivity = this.lastActivityDate
+        ? new Date(this.lastActivityDate)
+        : null;
+
+    if (lastActivity) {
+        lastActivity.setHours(0, 0, 0, 0);
+    }
+
+    // If already logged activity today, do nothing
+    if (lastActivity && lastActivity.getTime() === today.getTime()) {
+        return;
+    }
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (!lastActivity) {
+        // First activity ever
+        this.currentStreak = 1;
+        this.longestStreak = 1;
+        this.totalActiveDays = 1;
+    } else if (lastActivity.getTime() === yesterday.getTime()) {
+        // Consecutive day
+        this.currentStreak += 1;
+        this.totalActiveDays += 1;
+        if (this.currentStreak > this.longestStreak) {
+            this.longestStreak = this.currentStreak;
+        }
+    } else if (lastActivity.getTime() < yesterday.getTime()) {
+        // Streak broken
+        this.currentStreak = 1;
+        this.totalActiveDays += 1;
+    }
+
+    this.lastActivityDate = today;
+    await this.save();
+};
+
 const User: Model<IUser> =
     mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 

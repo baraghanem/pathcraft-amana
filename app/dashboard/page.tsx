@@ -96,9 +96,26 @@ export default function DashboardPage() {
         <div className="container mx-auto py-12 px-4">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Here's your learning progress overview
-                </p>
+                <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                        <span className="text-2xl">🔥</span>
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak</p>
+                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {user?.currentStreak || 0} Days
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="text-2xl">🏆</span>
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Longest Streak</p>
+                            <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                {user?.longestStreak || 0} Days
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Stats Grid */}

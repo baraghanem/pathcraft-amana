@@ -35,6 +35,8 @@ export default function PathDetailsPage({ params }: RouteParams) {
     const [path, setPath] = useState<Path | null>(null);
     const [loading, setLoading] = useState(true);
     const [cloning, setCloning] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     const { isAuthenticated, user } = useAuth();
     const router = useRouter();
 
@@ -49,6 +51,10 @@ export default function PathDetailsPage({ params }: RouteParams) {
             const response: any = await api.getPath(id);
             if (response.success && response.data?.path) {
                 setPath(response.data.path);
+                // Check if path is saved
+                if (user?.savedPaths) {
+                    setIsSaved(user.savedPaths.some((p: any) => p.pathId === response.data.path._id));
+                }
             }
         } catch (error) {
             console.error('Failed to load path:', error);
@@ -75,6 +81,30 @@ export default function PathDetailsPage({ params }: RouteParams) {
             alert(error.message || 'Failed to clone path');
         } finally {
             setCloning(false);
+        }
+    }
+
+    async function handleSaveToggle() {
+        if (!isAuthenticated) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            setSaving(true);
+            const { id } = await params;
+
+            if (isSaved) {
+                await api.unsavePath(id);
+                setIsSaved(false);
+            } else {
+                await api.savePath(id);
+                setIsSaved(true);
+            }
+        } catch (error: any) {
+            console.error('Failed to toggle save:', error);
+        } finally {
+            setSaving(false);
         }
     }
 
@@ -143,6 +173,14 @@ export default function PathDetailsPage({ params }: RouteParams) {
                         </Button>
                     ) : (
                         <>
+                            <Button
+                                variant="outline"
+                                onClick={handleSaveToggle}
+                                disabled={saving}
+                                className={`flex items-center gap-2 ${isSaved ? 'text-blue-600 border-blue-600' : ''}`}
+                            >
+                                <span>{isSaved ? '★' : '☆'}</span> {isSaved ? 'Saved' : 'Save'}
+                            </Button>
                             <Button
                                 variant="outline"
                                 onClick={handleClone}

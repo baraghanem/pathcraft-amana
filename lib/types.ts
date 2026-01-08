@@ -7,9 +7,15 @@ export interface IUser extends Document {
     password: string;
     name: string;
     avatar?: string;
+    currentStreak: number;
+    longestStreak: number;
+    lastActivityDate?: Date;
+    totalActiveDays: number;
+    savedPaths: Array<{ pathId: Types.ObjectId; savedAt: Date }>;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
+    updateStreak(): Promise<void>;
 }
 
 export interface UserPayload {

@@ -8,6 +8,12 @@ interface User {
     email: string;
     name: string;
     avatar?: string;
+    createdAt?: string;
+    savedPaths?: Array<{ pathId: string; savedAt: string }>;
+    currentStreak?: number;
+    longestStreak?: number;
+    totalActiveDays?: number;
+    lastActivityDate?: string;
 }
 
 interface AuthContextType {
@@ -29,6 +35,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         checkAuth();
     }, []);
+
+    // Track activity on app open
+    useEffect(() => {
+        if (user) {
+            const trackActivity = async () => {
+                try {
+                    await api.trackActivity();
+                    // Refresh user data to get updated streak
+                    const response = await api.getCurrentUser();
+                    if (response.success && response.data?.user) {
+                        setUser(response.data.user);
+                    }
+                } catch (error) {
+                    console.error('Failed to track activity:', error);
+                }
+            };
+            trackActivity();
+        }
+    }, [user?.id]);
 
     async function checkAuth() {
         try {

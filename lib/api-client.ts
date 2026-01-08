@@ -11,6 +11,10 @@ export interface User {
     email: string;
     name: string;
     avatar?: string;
+    currentStreak?: number;
+    longestStreak?: number;
+    totalActiveDays?: number;
+    lastActivityDate?: string;
 }
 
 // API base URL
@@ -72,6 +76,12 @@ class ApiClient {
     }
 
     // Auth endpoints
+    async trackActivity() {
+        return this.request('/api/auth/activity', {
+            method: 'POST',
+        });
+    }
+
     async register(email: string, password: string, name: string): Promise<ApiResponse<{ user: User; token: string }>> {
         const response = await this.request<ApiResponse<{ user: User; token: string }>>('/api/auth/register', {
             method: 'POST',
@@ -193,9 +203,48 @@ class ApiClient {
         });
     }
 
+    // Saved Paths
+    async savePath(pathId: string) {
+        return this.request(`/api/user/saved-paths/${pathId}`, {
+            method: 'POST',
+        });
+    }
+
+    async unsavePath(pathId: string) {
+        return this.request(`/api/user/saved-paths/${pathId}`, {
+            method: 'DELETE',
+        });
+    }
+
     // Categories
-    async getCategories() {
-        return this.request('/api/categories');
+
+    // Notifications
+    async getNotifications() {
+        return this.request('/api/notifications');
+    }
+
+    async markNotificationRead(id: string) {
+        return this.request(`/api/notifications/${id}/read`, {
+            method: 'POST',
+        });
+    }
+
+    async markAllNotificationsRead() {
+        return this.request('/api/notifications/mark-all-read', {
+            method: 'POST',
+        });
+    }
+
+    async deleteNotification(id: string) {
+        return this.request(`/api/notifications/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async clearAllNotifications() {
+        return this.request('/api/notifications/clear-all', {
+            method: 'DELETE',
+        });
     }
 }
 
