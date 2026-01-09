@@ -7,19 +7,17 @@ import { successResponse, errorResponse } from '@/lib/utils/apiResponse';
 export async function POST(request: NextRequest) {
     try {
         const authResult = await authenticateUser(request);
-        if (authResult instanceof Response) {
-            return authResult;
-        }
+        if (authResult instanceof Response) return authResult;
 
-        // Currently, we don't store notification settings in the User model.
-        // This is a placeholder for future implementation where we would update 
-        // a `notifications` field in the User document.
+        const body = await request.json(); // e.g., { emailAlerts: true, streakReminders: false }
+        await connectDB();
 
-        // const body = await request.json();
-        // await connectDB();
-        // await User.findByIdAndUpdate(authResult.user.id, { notificationSettings: body });
+        // Update the user's notification settings field
+        await User.findByIdAndUpdate(authResult.user.id, {
+            notificationSettings: body
+        });
 
-        return successResponse(null, 'Notification settings updated');
+        return successResponse(null, 'Preferences updated successfully');
     } catch (error) {
         return errorResponse(error);
     }
