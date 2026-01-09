@@ -48,6 +48,7 @@ export const Navbar = () => {
                         <>
                             <Link href="/dashboard" className="hover:text-[#3b82f6] transition-colors">Dashboard</Link>
                             <Link href="/dashboard/my-paths" className="hover:text-[#3b82f6] transition-colors">My Paths</Link>
+                            <Link href="/settings" className="hover:text-[#3b82f6] transition-colors">Settings</Link>
                         </>
                     )}
                 </nav>

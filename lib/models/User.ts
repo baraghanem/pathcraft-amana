@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import { IUser } from '@/lib/types';
-import { comparePassword } from '@/lib/auth';
+import bcrypt from 'bcryptjs';
 
 const UserSchema = new Schema<IUser>(
     {
@@ -29,22 +29,13 @@ const UserSchema = new Schema<IUser>(
             type: String,
             default: null,
         },
-        // Streak tracking fields
-        currentStreak: {
+        streak: {
             type: Number,
             default: 0,
         },
-        longestStreak: {
-            type: Number,
-            default: 0,
-        },
-        lastActivityDate: {
+        lastActiveDate: {
             type: Date,
             default: null,
-        },
-        totalActiveDays: {
-            type: Number,
-            default: 0,
         },
     },
     {
@@ -58,49 +49,34 @@ UserSchema.index({ email: 1 });
 UserSchema.methods.comparePassword = async function (
     candidatePassword: string
 ): Promise<boolean> {
-    return comparePassword(candidatePassword, this.password);
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
 // Method to update streak
 UserSchema.methods.updateStreak = async function (): Promise<void> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-    const lastActivity = this.lastActivityDate
-        ? new Date(this.lastActivityDate)
-        : null;
-
-    if (lastActivity) {
-        lastActivity.setHours(0, 0, 0, 0);
-    }
-
-    // If already logged activity today, do nothing
-    if (lastActivity && lastActivity.getTime() === today.getTime()) {
+    if (!this.lastActiveDate) {
+        this.streak = 1;
+        this.lastActiveDate = now;
+        await this.save();
         return;
     }
 
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const lastActive = new Date(this.lastActiveDate);
+    const lastDate = new Date(lastActive.getFullYear(), lastActive.getMonth(), lastActive.getDate()).getTime();
+    const oneDay = 24 * 60 * 60 * 1000;
 
-    if (!lastActivity) {
-        // First activity ever
-        this.currentStreak = 1;
-        this.longestStreak = 1;
-        this.totalActiveDays = 1;
-    } else if (lastActivity.getTime() === yesterday.getTime()) {
-        // Consecutive day
-        this.currentStreak += 1;
-        this.totalActiveDays += 1;
-        if (this.currentStreak > this.longestStreak) {
-            this.longestStreak = this.currentStreak;
-        }
-    } else if (lastActivity.getTime() < yesterday.getTime()) {
-        // Streak broken
-        this.currentStreak = 1;
-        this.totalActiveDays += 1;
+    if (today === lastDate) return; // Already active today
+
+    if (today - lastDate === oneDay) {
+        this.streak += 1; // Consecutive day
+    } else {
+        this.streak = 1; // Streak broken
     }
 
-    this.lastActivityDate = today;
+    this.lastActiveDate = now;
     await this.save();
 };
 

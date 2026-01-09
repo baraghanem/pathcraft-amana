@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Call Gemini API
-        const { text } = await generateText({
+        const { text, finishReason } = await generateText({
             model: geminiModel,
             system: ROADMAP_GENERATION_PROMPT,
             prompt: userPrompt,
@@ -44,23 +44,28 @@ export async function POST(request: NextRequest) {
             maxTokens: 2000,
         });
 
+        // Handle safety filter
+        if (finishReason === 'content-filter') {
+            throw new ApiError(400, 'This topic was flagged by AI safety filters. Please try another subject.');
+        }
+
         // Parse the response
         let roadmapData;
         try {
             // Extract JSON from response (in case there's extra text)
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                throw new Error('No valid JSON found in AI response');
+                throw new Error('The AI could not generate a roadmap for this topic. Please try a different query.');
             }
             roadmapData = JSON.parse(jsonMatch[0]);
-        } catch (parseError) {
+        } catch (parseError: any) {
             console.error('Failed to parse AI response:', text);
-            throw new ApiError(500, 'Failed to parse AI-generated roadmap');
+            throw new ApiError(500, parseError.message || 'Failed to parse AI-generated roadmap');
         }
 
         // Validate the generated roadmap structure
-        if (!roadmapData.title || !roadmapData.steps || !Array.isArray(roadmapData.steps)) {
-            throw new ApiError(500, 'Invalid roadmap structure from AI');
+        if (!roadmapData.title || !roadmapData.steps || !Array.isArray(roadmapData.steps) || roadmapData.steps.length === 0) {
+            throw new ApiError(422, 'The AI could not generate a roadmap for this topic. Please try a different query.');
         }
 
         // Ensure steps have required fields
@@ -78,7 +83,11 @@ export async function POST(request: NextRequest) {
             },
             'Roadmap generated successfully'
         );
-    } catch (error) {
+    } catch (error: any) {
+        // Specifically handle Gemini safety/limit errors from message strings
+        if (error.message?.includes('finishReason: "safety"') || error.message?.includes('safety filter')) {
+            return errorResponse(new ApiError(400, 'This topic was flagged by AI safety filters. Please try another subject.'));
+        }
         return errorResponse(error);
     }
 }

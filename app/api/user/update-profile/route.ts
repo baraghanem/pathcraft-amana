@@ -4,7 +4,7 @@ import User from '@/lib/models/User';
 import { authenticateUser } from '@/lib/middleware/auth';
 import { successResponse, errorResponse } from '@/lib/utils/apiResponse';
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
     try {
         const authResult = await authenticateUser(request);
         if (authResult instanceof Response) {
