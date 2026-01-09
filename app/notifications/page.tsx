@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api-client";
 
 interface Notification {
     id: string;
@@ -34,89 +35,18 @@ export default function NotificationsPage() {
         loadNotifications();
     }, [isAuthenticated, router]);
 
-    function loadNotifications() {
-        // TODO: Replace with actual API call
-        // const response = await api.getNotifications();
-
-        // Mock notifications based on user data
-        const mockNotifications: Notification[] = [
-            {
-                id: '1',
-                type: 'streak',
-                title: '🔥 Streak Milestone!',
-                description: `Amazing! You've maintained your learning streak for ${user?.currentStreak || 0} days. Keep it up!`,
-                time: '5 minutes ago',
-                icon: '🔥',
-                read: false,
-            },
-            {
-                id: '2',
-                type: 'milestone',
-                title: 'Path Completed!',
-                description: 'Congratulations! You completed "Full Stack Web Development 2026"',
-                time: '2 hours ago',
-                icon: '🎉',
-                read: false,
-                actionLink: '/dashboard',
-                actionText: 'View Dashboard',
-            },
-            {
-                id: '3',
-                type: 'social',
-                title: 'Your Path Was Cloned',
-                description: 'Someone just cloned your "React Development" path!',
-                time: '5 hours ago',
-                icon: '📋',
-                read: false,
-                actionLink: '/dashboard/my-paths',
-                actionText: 'View Path',
-            },
-            {
-                id: '4',
-                type: 'reminder',
-                title: 'Daily Learning Reminder',
-                description: "You haven't studied today. Continue your learning journey!",
-                time: '1 day ago',
-                icon: '⏰',
-                read: true,
-                actionLink: '/explore',
-                actionText: 'Explore Paths',
-            },
-            {
-                id: '5',
-                type: 'system',
-                title: 'New Feature: AI Roadmap Generation',
-                description: 'You can now generate learning paths with AI! Try it in Create Path.',
-                time: '2 days ago',
-                icon: '✨',
-                read: true,
-                actionLink: '/dashboard/create-path',
-                actionText: 'Try Now',
-            },
-            {
-                id: '6',
-                type: 'milestone',
-                title: 'Step Completed',
-                description: 'You completed "JavaScript Basics" in your current path.',
-                time: '3 days ago',
-                icon: '✅',
-                read: true,
-            },
-            {
-                id: '7',
-                type: 'social',
-                title: 'Popular Path Alert',
-                description: '"Machine Learning with Python" is trending! Check it out.',
-                time: '4 days ago',
-                icon: '🔥',
-                read: true,
-                actionLink: '/explore',
-                actionText: 'View Path',
-            },
-        ];
-
-        setNotifications(mockNotifications);
-        setLoading(false);
+    async function loadNotifications() {
+        try {
+            setLoading(true);
+            const response: any = await api.getNotifications();
+            if (response.success && response.data?.notifications) {
+                setNotifications(response.data.notifications);
+            }
+        } catch (error) {
+            console.error('Failed to load notifications', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     function markAsRead(id: string) {
@@ -127,10 +57,16 @@ export default function NotificationsPage() {
         // await api.markNotificationRead(id);
     }
 
-    function markAllAsRead() {
+    async function markAllAsRead() {
+        // Optimistic update
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        // TODO: Call API to mark all as read
-        // await api.markAllNotificationsRead();
+
+        try {
+            // Call the new PUT endpoint we created
+            await api.request('/api/notifications', { method: 'PUT' });
+        } catch (error) {
+            console.error('Failed to mark all read', error);
+        }
     }
 
     function deleteNotification(id: string) {
@@ -207,8 +143,8 @@ export default function NotificationsPage() {
                 <button
                     onClick={() => setFilter('all')}
                     className={`pb-2 px-1 font-medium transition-colors ${filter === 'all'
-                            ? 'text-blue-600 border-b-2 border-blue-600'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                         }`}
                 >
                     All ({notifications.length})
@@ -216,8 +152,8 @@ export default function NotificationsPage() {
                 <button
                     onClick={() => setFilter('unread')}
                     className={`pb-2 px-1 font-medium transition-colors ${filter === 'unread'
-                            ? 'text-blue-600 border-b-2 border-blue-600'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                         }`}
                 >
                     Unread ({unreadCount})
@@ -251,8 +187,8 @@ export default function NotificationsPage() {
                     <Card
                         key={notification.id}
                         className={`flex gap-4 p-5 items-start transition-all hover:shadow-md ${!notification.read
-                                ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800'
-                                : ''
+                            ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800'
+                            : ''
                             }`}
                     >
                         {/* Icon */}
@@ -264,8 +200,8 @@ export default function NotificationsPage() {
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start gap-4 mb-2">
                                 <h3 className={`font-semibold ${!notification.read
-                                        ? 'text-gray-900 dark:text-white'
-                                        : 'text-gray-700 dark:text-gray-300'
+                                    ? 'text-gray-900 dark:text-white'
+                                    : 'text-gray-700 dark:text-gray-300'
                                     }`}>
                                     {notification.title}
                                 </h3>

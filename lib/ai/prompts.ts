@@ -1,13 +1,13 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
 
 if (!apiKey) {
-    console.warn('GOOGLE_GENERATIVE_AI_API_KEY is not set. AI generation will not work.');
+  console.warn('AI API key is not set. AI generation will not work.');
 }
 
 export const google = createGoogleGenerativeAI({
-    apiKey: apiKey || '',
+  apiKey: apiKey || '',
 });
 
 // Use Gemini Pro for roadmap generation
@@ -32,28 +32,28 @@ The roadmap should be tailored to the user's specified difficulty level and goal
  * Generate a structured prompt for roadmap creation
  */
 export function generateRoadmapPrompt(params: {
-    topic: string;
-    goal?: string;
-    difficulty?: string;
-    currentLevel?: string;
+  topic: string;
+  goal?: string;
+  difficulty?: string;
+  currentLevel?: string;
 }): string {
-    const { topic, goal, difficulty, currentLevel } = params;
+  const { topic, goal, difficulty, currentLevel } = params;
 
-    let prompt = `Create a comprehensive learning roadmap for: "${topic}"\n\n`;
+  let prompt = `Create a comprehensive learning roadmap for: "${topic}"\n\n`;
 
-    if (difficulty) {
-        prompt += `Difficulty Level: ${difficulty}\n`;
-    }
+  if (difficulty) {
+    prompt += `Difficulty Level: ${difficulty}\n`;
+  }
 
-    if (currentLevel) {
-        prompt += `Current Knowledge Level: ${currentLevel}\n`;
-    }
+  if (currentLevel) {
+    prompt += `Current Knowledge Level: ${currentLevel}\n`;
+  }
 
-    if (goal) {
-        prompt += `Learning Goal: ${goal}\n`;
-    }
+  if (goal) {
+    prompt += `Learning Goal: ${goal}\n`;
+  }
 
-    prompt += `\nPlease provide a structured learning path with:
+  prompt += `\nPlease provide a structured learning path with:
 - A clear, descriptive title
 - A comprehensive description (2-3 sentences) of what the learner will achieve
 - An appropriate category
@@ -79,5 +79,5 @@ Format your response as valid JSON following this exact structure:
   ]
 }`;
 
-    return prompt;
+  return prompt;
 }

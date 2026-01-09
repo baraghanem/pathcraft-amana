@@ -8,6 +8,7 @@ import {
     notFoundResponse,
     forbiddenResponse,
 } from '@/lib/utils/apiResponse';
+import Notification from '@/lib/models/Notification';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -59,6 +60,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Increment clone count on original
         await Path.findByIdAndUpdate(id, { $inc: { cloneCount: 1 } });
+
+        // Notify the original author that someone cloned their path
+        if (originalPath.author.toString() !== authResult.user.id) {
+            await Notification.create({
+                recipient: originalPath.author,
+                sender: authResult.user.id,
+                type: 'social',
+                title: 'Path Cloned!',
+                description: `${authResult.user.name} just cloned your path "${originalPath.title}"`,
+                link: `/path/${originalPath._id}`, // Link to their path
+                read: false
+            });
+        }
 
         // Populate author info
         await clonedPath.populate('author', 'name avatar');

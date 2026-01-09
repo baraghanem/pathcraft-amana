@@ -3,6 +3,7 @@ import { generateText } from 'ai';
 import { geminiModel, generateRoadmapPrompt, ROADMAP_GENERATION_PROMPT } from '@/lib/ai/prompts';
 import { generateRoadmapSchema } from '@/lib/utils/validation';
 import { successResponse, errorResponse, ApiError } from '@/lib/utils/apiResponse';
+import { authenticateUser } from '@/lib/middleware/auth';
 import { GenerateRoadmapRequest } from '@/lib/types';
 
 /**
@@ -10,16 +11,19 @@ import { GenerateRoadmapRequest } from '@/lib/types';
  */
 export async function POST(request: NextRequest) {
     try {
+        const authResult = await authenticateUser(request);
+        if (authResult instanceof Response) return authResult;
+
         const body: GenerateRoadmapRequest = await request.json();
 
         // Validate request
         const validatedData = generateRoadmapSchema.parse(body);
 
         // Check if API key is configured
-        if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && !process.env.GEMINI_API_KEY) {
             throw new ApiError(
                 503,
-                'AI generation is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY environment variable.'
+                'AI generation is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY environment variable.'
             );
         }
 
