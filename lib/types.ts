@@ -7,8 +7,10 @@ export interface IUser extends Document {
     password: string;
     name: string;
     avatar?: string;
-    streak: number;
-    lastActiveDate?: Date;
+    currentStreak: number;
+    longestStreak: number;
+    totalActiveDays: number;
+    lastActivityDate?: Date;
     savedPaths: Array<{ pathId: Types.ObjectId; savedAt: Date }>;
     createdAt: Date;
     updatedAt: Date;

@@ -29,11 +29,19 @@ const UserSchema = new Schema<IUser>(
             type: String,
             default: null,
         },
-        streak: {
+        currentStreak: {
             type: Number,
             default: 0,
         },
-        lastActiveDate: {
+        longestStreak: {
+            type: Number,
+            default: 0,
+        },
+        totalActiveDays: {
+            type: Number,
+            default: 0,
+        },
+        lastActivityDate: {
             type: Date,
             default: null,
         },
@@ -57,26 +65,33 @@ UserSchema.methods.updateStreak = async function (): Promise<void> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-    if (!this.lastActiveDate) {
-        this.streak = 1;
-        this.lastActiveDate = now;
+    if (!this.lastActivityDate) {
+        this.currentStreak = 1;
+        this.longestStreak = 1;
+        this.totalActiveDays = 1;
+        this.lastActivityDate = now;
         await this.save();
         return;
     }
 
-    const lastActive = new Date(this.lastActiveDate);
+    const lastActive = new Date(this.lastActivityDate);
     const lastDate = new Date(lastActive.getFullYear(), lastActive.getMonth(), lastActive.getDate()).getTime();
     const oneDay = 24 * 60 * 60 * 1000;
 
     if (today === lastDate) return; // Already active today
 
+    this.totalActiveDays += 1;
+
     if (today - lastDate === oneDay) {
-        this.streak += 1; // Consecutive day
+        this.currentStreak += 1; // Consecutive day
+        if (this.currentStreak > this.longestStreak) {
+            this.longestStreak = this.currentStreak;
+        }
     } else {
-        this.streak = 1; // Streak broken
+        this.currentStreak = 1; // Streak broken
     }
 
-    this.lastActiveDate = now;
+    this.lastActivityDate = now;
     await this.save();
 };
 
