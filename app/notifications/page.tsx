@@ -20,75 +20,43 @@ interface Notification {
     actionText?: string;
 }
 
+import { useNotifications } from "@/app/context/NotificationContext";
+
 export default function NotificationsPage() {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated } = useAuth();
     const router = useRouter();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification, clearAllNotifications, refreshNotifications } = useNotifications();
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!isAuthenticated) {
             router.push('/login');
             return;
         }
-        loadNotifications();
-    }, [isAuthenticated, router]);
+        refreshNotifications();
+    }, [isAuthenticated, router, refreshNotifications]);
 
-    async function loadNotifications() {
+    async function handleDeleteNotification(id: string) {
         try {
-            setLoading(true);
-            const response: any = await api.getNotifications();
-            if (response.success && response.data?.notifications) {
-                setNotifications(response.data.notifications);
+            await deleteNotification(id);
+        } catch (error) {
+            console.error('Failed to delete notification', error);
+        }
+    }
+
+    async function handleClearAll() {
+        if (confirm('Are you sure you want to clear all notifications?')) {
+            try {
+                await clearAllNotifications();
+            } catch (error) {
+                console.error('Failed to clear notifications', error);
             }
-        } catch (error) {
-            console.error('Failed to load notifications', error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    function markAsRead(id: string) {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? { ...n, read: true } : n)
-        );
-        // TODO: Call API to mark as read
-        // await api.markNotificationRead(id);
-    }
-
-    async function markAllAsRead() {
-        // Optimistic update
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-
-        try {
-            // Call the new PUT endpoint we created
-            await api.request('/api/notifications', { method: 'PUT' });
-        } catch (error) {
-            console.error('Failed to mark all read', error);
-        }
-    }
-
-    function deleteNotification(id: string) {
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        // TODO: Call API to delete notification
-        // await api.deleteNotification(id);
-    }
-
-    function clearAll() {
-        const confirmed = confirm('Are you sure you want to clear all notifications?');
-        if (confirmed) {
-            setNotifications([]);
-            // TODO: Call API to clear all
-            // await api.clearAllNotifications();
         }
     }
 
     const filteredNotifications = filter === 'unread'
         ? notifications.filter(n => !n.read)
         : notifications;
-
-    const unreadCount = notifications.filter(n => !n.read).length;
 
     if (loading) {
         return (
@@ -130,7 +98,7 @@ export default function NotificationsPage() {
                         <Button
                             variant="outline"
                             className="text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                            onClick={clearAll}
+                            onClick={handleClearAll}
                         >
                             Clear all
                         </Button>
@@ -237,7 +205,7 @@ export default function NotificationsPage() {
                                 )}
 
                                 <button
-                                    onClick={() => deleteNotification(notification.id)}
+                                    onClick={() => handleDeleteNotification(notification.id)}
                                     className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 ml-auto"
                                 >
                                     Delete

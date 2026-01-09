@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,13 +31,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
       >
         <AuthProvider>
-          {/* We might conditionally render Navbar based on route in a real app, 
-              but it's present in almost all wireframes except Login, so we leave it here for now. */}
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          {/* Add Footer here later */}
+          <NotificationProvider>
+            {/* We might conditionally render Navbar based on route in a real app, 
+                but it's present in almost all wireframes except Login, so we leave it here for now. */}
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            {/* Add Footer here later */}
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

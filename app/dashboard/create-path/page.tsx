@@ -3,7 +3,7 @@
 import { Button } from "@/app/components/ui/Button";
 import { Card } from "@/app/components/ui/Card";
 import { Input } from "@/app/components/ui/Input";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,13 @@ interface GeneratedRoadmap {
     };
 }
 
-export default function ImprovedCreatePathPage() {
+export default function ImprovedCreatePathPage({
+    editMode = false,
+    initialData = null
+}: {
+    editMode?: boolean;
+    initialData?: any;
+}) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState(PATH_CATEGORIES[0]);
@@ -43,6 +49,18 @@ export default function ImprovedCreatePathPage() {
     const [isPublic, setIsPublic] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Load initial data if in edit mode
+    useEffect(() => {
+        if (initialData) {
+            setTitle(initialData.title || '');
+            setDescription(initialData.description || '');
+            setCategory(initialData.category || PATH_CATEGORIES[0]);
+            setDifficulty(initialData.difficulty || 'Beginner');
+            setSteps(initialData.steps || [{ title: '', description: '', estimatedDuration: '', order: 0 }]);
+            setIsPublic(initialData.isPublic !== undefined ? initialData.isPublic : true);
+        }
+    }, [initialData]);
 
     // AI Generation States
     const [aiLoading, setAiLoading] = useState(false);
@@ -70,7 +88,7 @@ export default function ImprovedCreatePathPage() {
     ];
 
     // Load history from localStorage on mount
-    useState(() => {
+    useEffect(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('pathcraft_ai_history');
             if (saved) {
@@ -81,7 +99,7 @@ export default function ImprovedCreatePathPage() {
                 }
             }
         }
-    });
+    }, []);
 
     const { isAuthenticated } = useAuth();
     const router = useRouter();
@@ -296,12 +314,15 @@ export default function ImprovedCreatePathPage() {
                 isPublic,
             };
 
-            const response: any = await api.createPath(pathData);
+            const response: any = editMode
+                ? await api.updatePath(initialData._id, pathData)
+                : await api.createPath(pathData);
+
             if (response.success) {
                 router.push('/dashboard/my-paths');
             }
         } catch (err: any) {
-            setError(err.message || 'Failed to create path');
+            setError(err.message || (editMode ? 'Failed to update path' : 'Failed to create path'));
         } finally {
             setLoading(false);
         }
@@ -309,7 +330,7 @@ export default function ImprovedCreatePathPage() {
 
     return (
         <div className="container mx-auto py-12 px-4 max-w-3xl">
-            <h1 className="text-3xl font-bold mb-8">Create Learning Path</h1>
+            <h1 className="text-3xl font-bold mb-8">{editMode ? 'Edit Learning Path' : 'Create Learning Path'}</h1>
 
             {error && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
@@ -826,7 +847,7 @@ export default function ImprovedCreatePathPage() {
                         Cancel
                     </Button>
                     <Button type="submit" disabled={loading}>
-                        {loading ? 'Creating...' : 'Create Path'}
+                        {loading ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Path' : 'Create Path')}
                     </Button>
                 </div>
             </form>

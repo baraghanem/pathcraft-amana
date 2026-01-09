@@ -15,13 +15,22 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const params = Object.fromEntries(searchParams);
+        const isAdminQuery = params.admin === 'true';
 
         // Validate and parse query parameters
         const { query, category, difficulty, page, limit, sortBy, sortOrder } =
             searchParamsSchema.parse(params);
 
         // Build filter query
-        const filter: any = { isPublic: true };
+        // If admin=true and authenticated, show all paths. Otherwise only public.
+        let filter: any = { isPublic: true };
+
+        if (isAdminQuery) {
+            const authResult = await authenticateUser(request);
+            if (!(authResult instanceof Response)) {
+                filter = {}; // Admin sees all
+            }
+        }
 
         if (query) {
             filter.$text = { $search: query };

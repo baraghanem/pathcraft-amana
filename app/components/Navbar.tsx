@@ -5,9 +5,11 @@ import Image from "next/image";
 import { Button } from "./ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "../context/NotificationContext";
 
 export const Navbar = () => {
     const { user, isAuthenticated, logout, loading } = useAuth();
+    const { unreadCount } = useNotifications();
     const router = useRouter();
 
     function handleLogout() {
@@ -18,6 +20,15 @@ export const Navbar = () => {
     return (
         <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md dark:bg-black/80 dark:border-gray-800">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
+                <Link href="/notifications" className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <span className="text-xl">🔔</span>
+                    {/* Real-time Unread Badge */}
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white dark:border-black">
+                            {unreadCount}
+                        </span>
+                    )}
+                </Link>
                 <Link href="/" className="flex items-center gap-2 group">
                     <Image
                         src="/logo.png"
